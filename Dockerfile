@@ -1,21 +1,26 @@
-# syntax = docker/dockerfile:1.5
+# syntax = docker/dockerfile:1.7
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
 # Optymalizacja linkowania i pobierania
 ENV UV_LINK_MODE=copy \
-    UV_PYTHON_DOWNLOADS=0
+    UV_USE_SYSTEM_PYTHON=1 
+
+# Instalacja openssh
+RUN apt-get update && apt-get install -y git openssh-client && rm -rf /var/lib/apt/lists/*
+
+# Konfiguracja SSH
+RUN mkdir -p -m 0700 /root/.ssh && \
+    ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # Ustawienie katalogu roboczego
 WORKDIR /app
 
+# Pobranie kodu z Githuba
+RUN --mount=type=ssh git clone git@github.com:sczupryn/weather-app-lab.git .
+
 # Instalacja zależności
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
-
-# Kopiowanie projektu
-COPY . /app
 
 # Synchronizacja projektu
 RUN --mount=type=cache,target=/root/.cache/uv \
