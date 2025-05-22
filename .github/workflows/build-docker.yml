@@ -15,12 +15,15 @@ jobs:
       id-token: write
 
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/weather-app-lab-2
-      CACHE_REPO: ${{ vars.DOCKERHUB_USERNAME }}/weather-app-lab-2-cache
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/weather-app-lab
+      CACHE_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/weather-app-lab-cache
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: github.com
 
       - name: Docker metadata definitions
         id: meta
@@ -48,7 +51,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GH_TOKEN }}
 
       - name: Build and Push Docker image
@@ -59,30 +62,21 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
-          load: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
-            type=registry,ref=${{ env.CACHE_REPO }}:cache
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache
           cache-to: |
-            type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
 
       - name: Scan built image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         id: trivy-scan
         with:
           image-ref: |
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
           severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          format: json
-          output: trivy-report.json
-
-      - name: Check for vulnerabilities
-        run: |
-          if jq '.Results[].Vulnerabilities | length == 0' trivy-report.json | grep -q false; then
-            echo "Critical or high vulnerabilities detected"
-            exit 1
-          fi
+          format: table
+          exit-code: 1
 
       - name: Push Docker image to GHCR
         if: success()
@@ -93,5 +87,3 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=registry,ref=${{ env.CACHE_REPO }}:cache
-          cache-to: type=registry,ref=${{ env.CACHE_REPO }}:cache,mode=max
