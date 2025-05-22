@@ -19,15 +19,10 @@ jobs:
       CACHE_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/weather-app-lab-cache
 
     steps:
-      - name: Start SSH agent
-        uses: webfactory/ssh-agent@v0.8.1
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ssh-strict: true
 
       - name: Docker metadata definitions
         id: meta
