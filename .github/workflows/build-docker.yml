@@ -69,7 +69,7 @@ jobs:
             type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
 
       - name: Scan built image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@0.28.0
         id: trivy-scan
         with:
           image-ref: |
