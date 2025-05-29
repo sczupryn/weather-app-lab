@@ -77,7 +77,7 @@ jobs:
       - name: Scan amd64 image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ steps.amd64-build.outputs.image-id }}
+          image-ref: ${{ steps.amd64-build.outputs.imageid }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
@@ -102,7 +102,7 @@ jobs:
       - name: Scan arm64 image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ steps.arm64-build.outputs.image-id }}
+          image-ref: ${{ steps.arm64-build.outputs.imageid }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
