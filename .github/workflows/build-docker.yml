@@ -3,7 +3,8 @@ name: Zadanie 2
 on:
   workflow_dispatch:
   push:
-    branches: ["main"]
+    tags:
+      - "v*"
 
 jobs:
   ci_step:
