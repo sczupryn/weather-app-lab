@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci_step:
-    name: Multiarch Image Build, Scan and Push
+    name: Multiarch Image Build and Push
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,7 +38,7 @@ jobs:
             type=sha,priority=100,prefix=sha-,format=short
             type=semver,priority=200,pattern={{version}}
 
-      - name: QEMU & Buildx set-up
+      - name: QEMU set-up
         uses: docker/setup-qemu-action@v3
 
       - name: Buildx set-up
@@ -57,9 +57,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: Build amd64 Docker image
+      - name: Build Docker image
+        id: build-image
         uses: docker/build-push-action@v5
-        id: amd64-build
         with:
           context: .
           file: ./Dockerfile
@@ -68,41 +68,17 @@ jobs:
           build-args: |
             SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
           ssh: default
-          tags: image-amd64:latest
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
             type=registry,ref=${{ env.CACHE_IMAGE }}:cache
           cache-to: |
             type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
 
-      - name: Scan amd64 image for vulnerabilities
+      - name: Scan built image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
+        id: trivy-scan
         with:
-          image-ref: ${{ steps.amd64-build.outputs.image }}
-          severity: CRITICAL,HIGH
-          format: table
-          exit-code: 1
-
-      - name: Build arm64 Docker image
-        uses: docker/build-push-action@v5
-        id: arm64-build
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/arm64
-          load: true
-          build-args: |
-            SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
-          ssh: default
-          tags: image-arm64:latest
-          cache-from: |
-            type=registry,ref=${{ env.CACHE_IMAGE }}:cache
-          cache-to: |
-            type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
-
-      - name: Scan arm64 image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ steps.arm64-build.outputs.image }}
+          image-ref: ${{ steps.meta.outputs.tags }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
