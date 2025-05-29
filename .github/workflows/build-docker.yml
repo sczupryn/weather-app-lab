@@ -16,7 +16,7 @@ jobs:
 
     env:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/weather-app-lab
-      CACHE_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/weather-app-lab
+      CACHE_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/weather-app-lab-cache
 
     steps:
       - uses: actions/checkout@v4
