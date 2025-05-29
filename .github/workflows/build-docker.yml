@@ -70,7 +70,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: false
           load: true
-          scan: true
           build-args: |
             SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
           ssh: default
