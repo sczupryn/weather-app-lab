@@ -61,7 +61,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: Build and Push Docker image
+      - name: Build Docker image
         id: build-image
         uses: docker/build-push-action@v5
         with:
@@ -69,6 +69,8 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
+          load: true
+          scan: true
           build-args: |
             SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
           ssh: default
