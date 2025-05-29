@@ -83,7 +83,7 @@ jobs:
         id: trivy-scan
         with:
           image-ref: |
-            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
