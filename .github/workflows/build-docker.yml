@@ -57,8 +57,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: Build Docker image
-        id: build-image
+      - name: Build amd64 Docker image
+        id: build-amd64-image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -76,9 +76,33 @@ jobs:
 
       - name: Scan built image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
-        id: trivy-scan
         with:
-          image-ref: ${{ steps.build-image.outputs.imageid }}
+          image-ref: ${{ steps.build-amd64-image.outputs.imageid }}
+          severity: CRITICAL,HIGH
+          format: table
+          exit-code: 1
+
+      - name: Build arm64 Docker image
+        id: build-arm64-image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          load: true
+          build-args: |
+            SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
+          ssh: default
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: |
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache
+          cache-to: |
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
+
+      - name: Scan built image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.build-arm64-image.outputs.imageid }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
