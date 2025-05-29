@@ -82,8 +82,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         id: trivy-scan
         with:
-          image-ref: |
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+          image-ref: ${{ steps.meta.outputs.tags }}
           severity: CRITICAL,HIGH
           format: table
           exit-code: 1
