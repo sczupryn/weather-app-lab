@@ -10,10 +10,14 @@ jobs:
   ci_step:
     name: Multiarch Image Build and Push
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.repository }}-build-${{ github.ref }}
+      cancel-in-progress: true
+
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     strategy:
       matrix:
@@ -69,8 +73,6 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ matrix.arch }}
           load: true
-          build-args: |
-            SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
           ssh: default
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
@@ -78,7 +80,7 @@ jobs:
           cache-to: |
             type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
 
-      - name: Scan built image for vulnerabilities
+      - name: Scan ${{ matrix.arch }} image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.build-image.outputs.imageid }}
@@ -94,7 +96,5 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: |
-            SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
           ssh: default
           tags: ${{ steps.meta.outputs.tags }}
