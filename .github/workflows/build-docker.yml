@@ -76,9 +76,9 @@ jobs:
           ssh: default
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
-            type=registry,ref=${{ env.CACHE_IMAGE }}:cache-${{ matrix.arch }}
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache
           cache-to: |
-            type=registry,ref=${{ env.CACHE_IMAGE }}:cache-${{ matrix.arch }},mode=max
+            type=registry,ref=${{ env.CACHE_IMAGE }}:cache,mode=max
 
       - name: Scan ${{ matrix.arch }} image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
